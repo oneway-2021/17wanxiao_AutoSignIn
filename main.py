@@ -140,8 +140,8 @@ def check_in(token):
     # print(jsons)
     # 提交打卡
     res = requests.post(sign_url, json=jsons, verify=False).json()
-    print("要提交的res")
-    #print(res)
+    # print("要提交的res")
+    # print(res)
     return res
 
 
