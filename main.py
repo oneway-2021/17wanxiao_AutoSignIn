@@ -1,11 +1,8 @@
 import time
 import json
 import requests
-import random
 import datetime
 import logging
-import os
-import sys
 from campus import CampusCard
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -17,8 +14,8 @@ chrome_options = Options()
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
 chrome_options.add_argument('--disable-dev-shm-usage')
-driver = webdriver.Chrome ('/usr/bin/chromedriver',chrome_options=chrome_options)
-#driver = webdriver.Chrome('/usr/local/bin/chromedriver', options=chrome_options)
+driver = webdriver.Chrome('/usr/bin/chromedriver', chrome_options=chrome_options)
+# driver = webdriver.Chrome('/usr/local/bin/chromedriver', options=chrome_options)
 
 
 def initLogging():
@@ -49,15 +46,15 @@ def main():
                 campus = CampusCard(phone[index], password[index])
                 token = campus.user_info["sessionId"]
                 driver.get('https://reportedh5.17wanxiao.com/collegeHealthPunch/index.html?token=%s#/punch?punchId=180'%token)
-                # time.sleep(10)
-                res = check_in(token)
+                time.sleep(2)
                 strTime = GetNowTime()
+                res = check_in(token)
                 if res['code'] == '10000':
                     success.append(value[-4:])
                     logging.info(value[-4:] + "打卡成功-" + strTime)
                     result = res
                     break
-                else:
+                elif res['code'] != '10000':
                     failure.append(value[-4:])
                     logging.info(value[-4:] + "打卡异常-" + strTime)
                     count = count + 1
@@ -71,7 +68,6 @@ def main():
                 break
         print("-----------------------")
     fail = sorted(set(failure), key=failure.index)
-    strTime = GetNowTime()
     title = "成功: %s 人,失败: %s 人" % (len(success), len(fail))
     try:
         if len(sckey[0]) > 2:
@@ -106,7 +102,7 @@ def GetUserJson(token):
         "businessType": "epmpics",
         "method": "userComeApp"
     }
-    res = requests.post(sign_url, json=user_json).json()
+    res = requests.post(sign_url, json=user_json, verify=False).json()
     # print(res)
     data = json.loads(res['data'])
     # print(data)
@@ -133,6 +129,7 @@ def GetUserJson(token):
                            for i in data['cusTemplateRelations']],
         }
     }
+    # print(post_dict)
     return post_dict
 
 
@@ -140,10 +137,11 @@ def GetUserJson(token):
 def check_in(token):
     sign_url = "https://reportedh5.17wanxiao.com/sass/api/epmpics"
     jsons = GetUserJson(token)
-    #print(jsons)
+    # print(jsons)
     # 提交打卡
-    res = requests.post(sign_url, json=jsons, timeout=10).json()
-    # print(res)
+    res = requests.post(sign_url, json=jsons, verify=False).json()
+    print("要提交的res")
+    #print(res)
     return res
 
 
